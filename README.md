@@ -70,9 +70,9 @@ Un attaccante può registrare una sfida `Rb` e la relativa risposta `H(Rb || s)`
 - L’autenticazione è **reciproca**.
 - L’uso della **marca temporale** impedisce gli **attacchi di replay**.
 - La marca temporale è ispirata a TSS (Trusted Secure Systems) e identifica **univocamente**:
-- Un messaggio,
-- Un utente,
-- Un istante temporale.
+  1. Un messaggio,
+  2. Un utente,
+  3. Un istante temporale.
 
 ---
 
