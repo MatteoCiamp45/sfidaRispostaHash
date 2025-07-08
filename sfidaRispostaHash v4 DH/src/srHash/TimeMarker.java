@@ -2,9 +2,12 @@ package srHash;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
+import java.util.*;
 
 public class TimeMarker implements TimeMarkerInterface {
     private int counter = 0;
+    private static final long TIME_WINDOW_MS = 5 * 60 * 1000; // 5 minuti
+    private final Map<String, Set<String>> receivedMarks = new HashMap<>();
 
     // Genera la marca temporale
     public byte[] generateMark(byte[] message, String id) throws Exception {
@@ -38,7 +41,32 @@ public class TimeMarker implements TimeMarkerInterface {
         byte[] input = concat(message, idBytes, tsBytes, countBytes);
         byte[] expectedHash = MessageDigest.getInstance("SHA-256").digest(input);
 
-        return MessageDigest.isEqual(expectedHash, hashReceived);
+        // 1. Verifica hash
+        if (!MessageDigest.isEqual(expectedHash, hashReceived)) {
+            return false;
+        }
+
+        // 2. Verifica che il timestamp sia entro la finestra accettabile (+-5 minuti)
+        long now = System.currentTimeMillis();
+        if (Math.abs(now - timestamp) > TIME_WINDOW_MS) {
+            System.out.println("Marca scaduta o futura.");
+            return false;
+        }
+
+        // 3. Prevenzione replay: verifica se la marca è già stata vista
+        String key = timestamp + ":" + count;
+        synchronized (receivedMarks) {
+            receivedMarks.putIfAbsent(id, new HashSet<>());
+            Set<String> seen = receivedMarks.get(id);
+            if (seen.contains(key)) {
+                System.out.println("Marca già ricevuta (replay rilevato).");
+                return false;
+            } else {
+                seen.add(key);
+            }
+        }
+
+        return true;
     }
 
     private byte[] concat(byte[] tsBytes, byte[] countBytes, byte[] digest) {
