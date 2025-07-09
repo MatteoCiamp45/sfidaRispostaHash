@@ -5,7 +5,7 @@ import java.security.MessageDigest;
 import java.util.*;
 
 public class TimeMarker implements TimeMarkerInterface {
-    private int counter = 0;
+    private static int counter = 0;
     private static final long TIME_WINDOW_MS = 5 * 60 * 1000; // 5 minuti
     private final Map<String, Set<String>> receivedMarks = new HashMap<>();
 
